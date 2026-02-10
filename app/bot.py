@@ -1,8 +1,8 @@
 import logging
 from pathlib import Path
 
-from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
+from telegram import BotCommand, KeyboardButton, ReplyKeyboardMarkup, Update
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 from app.config import TELEGRAM_BOT_TOKEN
 
@@ -24,18 +24,17 @@ async def post_init(application: Application):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     logger.info("Получена команда /start от %s (id=%s)", user.full_name, user.id)
-    keyboard = [[InlineKeyboardButton("Start", callback_data="start")]]
+    reply_keyboard = [[KeyboardButton("Почати")]]
     await update.message.reply_photo(
         photo=open(BASE_DIR / "public/images/start.png", "rb"),
-        reply_markup=InlineKeyboardMarkup(keyboard),
+        reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True),
     )
 
 
-async def on_start_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    logger.info("Нажата кнопка Start от %s (id=%s)", query.from_user.full_name, query.from_user.id)
-    await query.message.reply_photo(
+async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    logger.info("Нажата кнопка Почати от %s (id=%s)", user.full_name, user.id)
+    await update.message.reply_photo(
         photo=open(BASE_DIR / "public/images/image2.png", "rb"),
     )
 
@@ -43,7 +42,7 @@ async def on_start_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def create_bot() -> Application:
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(on_start_button, pattern="^start$"))
+    app.add_handler(MessageHandler(filters.Text(["Почати"]), on_start))
     return app
 
 
