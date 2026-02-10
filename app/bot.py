@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import BotCommand, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
 from app.config import TELEGRAM_BOT_TOKEN
@@ -13,6 +13,12 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
+
+
+async def post_init(application: Application):
+    await application.bot.set_my_commands([
+        BotCommand("start", "Почати"),
+    ])
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -35,7 +41,7 @@ async def on_start_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def create_bot() -> Application:
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
+    app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(on_start_button, pattern="^start$"))
     return app
