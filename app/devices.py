@@ -1,7 +1,7 @@
 import time
 from dataclasses import dataclass, field
 
-STALE_TIMEOUT = 300  # 5 минут
+STALE_TIMEOUT = 30000000  # 8.3 часа в миллисекундах
 
 
 @dataclass
