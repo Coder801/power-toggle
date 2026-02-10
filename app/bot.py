@@ -29,6 +29,9 @@ async def on_start_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     logger.info("Нажата кнопка Start от %s (id=%s)", query.from_user.full_name, query.from_user.id)
+    await query.message.reply_photo(
+        photo=open(BASE_DIR / "public/images/image2.png", "rb"),
+    )
 
 
 def create_bot() -> Application:
