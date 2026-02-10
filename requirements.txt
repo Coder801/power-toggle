@@ -1,6 +1,4 @@
 fastapi
 uvicorn[standard]
-sqlalchemy[asyncio]
-aiosqlite
 python-dotenv
 python-telegram-bot
