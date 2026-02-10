@@ -5,7 +5,7 @@ from telegram import BotCommand, KeyboardButton, ReplyKeyboardMarkup, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
 from app.config import TELEGRAM_BOT_TOKEN
-from app.devices import subscribers
+from app.devices import monitoring_chats, subscribers
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -36,9 +36,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    logger.info("Нажата кнопка 🚀 Почати от %s (id=%s)", user.full_name, user.id)
+    chat_id = update.effective_chat.id
+    monitoring_chats.add(chat_id)
+    logger.info("Нажата кнопка 🚀 Почати от %s (id=%s), моніторинг увімкнено", user.full_name, user.id)
     await update.message.reply_photo(
         photo=open(BASE_DIR / "public/images/image2.png", "rb"),
+        caption="✅ Моніторинг увімкнено. Статус кожні 5 хвилин.",
     )
 
 

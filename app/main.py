@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from app.bot import create_bot
 from app.config import TELEGRAM_BOT_TOKEN
-from app.devices import pop_stale_devices, register_ping, subscribers
+from app.devices import get_power_status, monitoring_chats, pop_stale_devices, register_ping, subscribers
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,19 @@ async def stale_checker(bot):
             await notify_subscribers(bot, text)
 
 
+async def status_reporter(bot):
+    while True:
+        await asyncio.sleep(300)  # 5 минут
+        if not monitoring_chats:
+            continue
+        text = get_power_status()
+        for chat_id in list(monitoring_chats):
+            try:
+                await bot.send_message(chat_id=chat_id, text=text)
+            except Exception:
+                logger.warning("Не удалось отправить статус в chat_id=%s", chat_id)
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     bot_app = create_bot()
@@ -47,11 +60,13 @@ async def lifespan(_app: FastAPI):
     await bot_app.start()
 
     _app.state.bot = bot_app.bot
-    task = asyncio.create_task(stale_checker(bot_app.bot))
+    stale_task = asyncio.create_task(stale_checker(bot_app.bot))
+    status_task = asyncio.create_task(status_reporter(bot_app.bot))
 
     yield
 
-    task.cancel()
+    stale_task.cancel()
+    status_task.cancel()
     await bot_app.updater.stop()
     await bot_app.stop()
     await bot_app.shutdown()

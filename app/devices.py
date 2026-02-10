@@ -17,8 +17,24 @@ class DeviceInfo:
 # chat_id пользователей, нажавших /start
 subscribers: set[int] = set()
 
+# chat_id пользователей, нажавших "Почати" — получают статус каждые 5 мин
+monitoring_chats: set[int] = set()
+
 # deviceId → DeviceInfo
 devices: dict[str, DeviceInfo] = {}
+
+
+def get_power_status() -> str:
+    """Возвращает текст статуса: є світло чи ні."""
+    if not devices:
+        return "⚫ Немає підключених пристроїв"
+    online = [d for d in devices.values() if d.status == "online"]
+    if online:
+        lines = [f"💡 Світло є! Онлайн пристроїв: {len(online)}"]
+        for d in online:
+            lines.append(f"  • {d.device_id} (uptime: {d.uptime_ms // 60000} хв)")
+        return "\n".join(lines)
+    return "🔴 Світла немає. Всі пристрої офлайн."
 
 
 def register_ping(data: dict) -> bool:
